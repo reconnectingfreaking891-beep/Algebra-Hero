@@ -1,0 +1,1433 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-HK">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#0f0b22">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>代數勇者 Algebra Hero</title>
+<style>
+:root{
+  --bg:#0f0b22; --bg2:#171235; --card:#1e1843; --card2:#272055;
+  --line:rgba(255,255,255,.12); --txt:#f2eeff; --dim:#a79ecb;
+  --pink:#ff5fa2; --mint:#3fe0b0; --gold:#ffcf5c; --blue:#6fb1ff; --red:#ff5d5d;
+  --sh:0 10px 26px rgba(0,0,0,.42);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  margin:0;background:radial-gradient(120% 80% at 50% -10%,#2a2160 0%,#0f0b22 55%,#08060f 100%);
+  color:var(--txt);font-family:"Noto Sans HK","PingFang HK","Microsoft JhengHei","Segoe UI",system-ui,sans-serif;
+  overflow:hidden;
+}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+#phone{
+  position:relative;width:100vw;height:100dvh;overflow:hidden;
+  display:flex;flex-direction:column;
+  padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+}
+.scr{position:absolute;inset:0;display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity .22s}
+.scr.on{opacity:1;pointer-events:auto}
+
+/* ---------- 共用 ---------- */
+.pad{padding:14px 16px}
+.top{display:flex;align-items:center;gap:10px;padding:10px 14px 4px}
+.top .ttl{font-weight:800;font-size:16px;letter-spacing:.4px}
+.top .sub{font-size:10px;color:var(--dim);letter-spacing:.6px;text-transform:uppercase}
+.chip{
+  background:linear-gradient(180deg,var(--card2),var(--card));border:1px solid var(--line);
+  border-radius:999px;padding:6px 11px;font-size:12px;font-weight:700;display:inline-flex;gap:5px;align-items:center;white-space:nowrap
+}
+.grow{flex:1;min-height:0}
+.scroll{overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.btn{
+  background:linear-gradient(180deg,#37307a,#282159);border:1px solid var(--line);border-radius:16px;
+  padding:13px 16px;font-weight:700;font-size:15px;box-shadow:var(--sh);transition:transform .08s;text-align:center;display:block;width:100%
+}
+.btn:active{transform:scale(.97)}
+.btn.pri{background:linear-gradient(180deg,#ff7fb7,#e63f88);border-color:#ff9ecb;color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.25)}
+.btn.mint{background:linear-gradient(180deg,#54eec0,#1fb98d);border-color:#8bf3d6;color:#04281e}
+.btn.sm{padding:9px 12px;font-size:13px;border-radius:12px;width:auto}
+.row{display:flex;gap:8px;align-items:center}
+.hide{display:none!important}
+.zh{font-size:11px;color:var(--dim);display:block;font-weight:500;letter-spacing:.2px}
+html.zh-only .en{display:none}
+html.en-only .zh,html.en-only .main-zh{display:none}
+.bar{height:9px;border-radius:999px;background:rgba(0,0,0,.42);overflow:hidden;border:1px solid rgba(255,255,255,.08)}
+.bar > i{display:block;height:100%;width:0;transition:width .45s cubic-bezier(.3,1.2,.4,1)}
+
+/* ---------- 首頁 ---------- */
+#s-home{justify-content:center;align-items:center;gap:14px;text-align:center;padding:24px}
+.logo{font-size:46px;font-weight:900;line-height:.92;letter-spacing:-1px;
+  background:linear-gradient(180deg,#fff,#ffa6d0 60%,#ff5fa2);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 6px 18px rgba(255,95,162,.35));animation:float 3.4s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.logo-en{font-size:12px;letter-spacing:5px;color:var(--mint);font-weight:800}
+.home-tip{font-size:12px;color:var(--dim);max-width:270px;line-height:1.6}
+.hero-badge{font-size:62px;filter:drop-shadow(0 8px 20px rgba(0,0,0,.5))}
+#s-home .btn{max-width:310px}
+.home-lv{font-size:12px;color:var(--dim)}
+
+/* ---------- 地圖 ---------- */
+.stage{
+  display:flex;gap:12px;align-items:center;padding:11px 12px;border-radius:16px;margin-bottom:9px;
+  background:linear-gradient(135deg,var(--card2),var(--card));border:1px solid var(--line);position:relative;overflow:hidden
+}
+.stage:active{transform:scale(.985)}
+.stage.locked{opacity:.45}
+.stage.cleared{border-color:rgba(63,224,176,.45)}
+.stage .icon{font-size:30px;width:46px;height:46px;display:grid;place-items:center;background:rgba(0,0,0,.28);border-radius:14px;flex:none}
+.stage .mid{flex:1;min-width:0}
+.stage .nm{font-weight:800;font-size:14.5px}
+.stage .meta{font-size:11px;color:var(--dim);margin-top:2px;font-variant-numeric:tabular-nums}
+.stage .go{font-size:20px;color:var(--dim)}
+.stars{letter-spacing:1px;font-size:11px;color:var(--gold)}
+.pill{position:absolute;top:0;right:0;background:var(--gold);color:#3a2600;font-size:9px;font-weight:900;padding:2px 8px;border-bottom-left-radius:8px}
+
+/* ---------- 戰鬥 ---------- */
+#s-battle .top{gap:8px}
+.hpwrap{display:flex;align-items:center;gap:8px;padding:4px 14px 0}
+.avatar{width:36px;height:36px;border-radius:12px;background:linear-gradient(180deg,#3fe0b0,#1a9c78);display:grid;place-items:center;font-size:20px;flex:none;box-shadow:var(--sh)}
+.mon-box{flex:1;text-align:right}
+.mon-name{font-size:12.5px;font-weight:800}
+.mon-name em{font-style:normal;color:var(--dim);font-weight:500;font-size:10px}
+.arena{position:relative;height:118px;display:grid;place-items:center;margin-top:2px}
+#monster{font-size:64px;line-height:1;transition:transform .12s;filter:drop-shadow(0 10px 16px rgba(0,0,0,.55))}
+#monster.hurt{animation:hurt .3s}
+#monster.die{animation:die .8s forwards}
+@keyframes hurt{0%{transform:translateX(0) scale(1)}25%{transform:translateX(-7px) scale(.94);filter:brightness(2.4) drop-shadow(0 0 12px #fff)}60%{transform:translateX(6px)}100%{transform:translateX(0) scale(1)}}
+@keyframes die{to{transform:scale(.2) rotate(70deg);opacity:0}}
+.float{position:absolute;font-weight:900;font-size:22px;pointer-events:none;animation:up .85s forwards;text-shadow:0 2px 8px rgba(0,0,0,.7)}
+@keyframes up{0%{transform:translateY(0);opacity:1}100%{transform:translateY(-64px) scale(1.35);opacity:0}}
+.pops{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+
+.qcard{
+  background:linear-gradient(180deg,#241d50,#1b1640);border:1px solid var(--line);border-radius:20px;
+  padding:14px;margin:6px 14px 0;box-shadow:var(--sh)
+}
+.qhead{font-size:10.5px;color:var(--mint);letter-spacing:1px;font-weight:800;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center}
+.qtext{
+  font-size:29px;font-weight:900;text-align:center;margin:12px 0 6px;letter-spacing:.5px;
+  font-family:"Cambria Math",Cambria,Georgia,serif;font-variant-numeric:tabular-nums
+}
+.qen{text-align:center;font-size:11px;color:var(--dim);margin-bottom:2px;font-family:Georgia,serif}
+.qhint{text-align:center;font-size:12px;color:var(--gold);margin-top:8px;line-height:1.5}
+.goal{
+  margin:6px 14px 0;padding:7px 12px;border-radius:12px;font-size:11.5px;line-height:1.5;
+  background:linear-gradient(90deg,rgba(255,95,162,.14),rgba(111,177,255,.10));border:1px solid var(--line);color:#cfc6f2
+}
+.goal b{color:var(--gold)}
+
+.ansarea{padding:10px 14px 0}
+.mc{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.mc button{
+  background:linear-gradient(180deg,#332b6e,#251f52);border:1px solid var(--line);border-radius:14px;
+  padding:15px 6px;font-size:20px;font-weight:800;font-family:Cambria,Georgia,serif;box-shadow:var(--sh);transition:transform .08s
+}
+.mc button:active{transform:scale(.96)}
+.mc button.ok{background:linear-gradient(180deg,#3fe0b0,#1c9c77);border-color:#8bf3d6;color:#03251c}
+.mc button.bad{background:linear-gradient(180deg,#ff6b6b,#b62f2f);border-color:#ff9d9d}
+.display{
+  height:52px;border-radius:14px;background:rgba(0,0,0,.36);border:1px dashed var(--line);
+  display:grid;place-items:center;font-size:24px;font-weight:800;font-family:Cambria,Georgia,serif;margin-bottom:9px
+}
+.display.empty{color:#5b5386;font-size:14px;font-weight:500;font-family:inherit}
+.keys{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.keys button{
+  padding:13px 0;border-radius:13px;background:linear-gradient(180deg,#2e2768,#221c4b);border:1px solid var(--line);
+  font-size:19px;font-weight:800;font-family:Cambria,Georgia,serif
+}
+.keys button:active{transform:scale(.94)}
+.keys button.wide{grid-column:span 2}
+.keys button.act{background:linear-gradient(180deg,#54eec0,#1fb98d);color:#04281e;border-color:#8bf3d6}
+.keys button.alt{background:linear-gradient(180deg,#5b52a8,#3b3478)}
+.bottom{padding:10px 14px calc(10px + env(safe-area-inset-bottom));display:flex;gap:8px}
+.energy{display:flex;gap:3px;align-items:center;font-size:16px}
+
+/* ---------- 解說 ---------- */
+#s-explain{background:rgba(10,7,24,.96);backdrop-filter:blur(6px)}
+.ex{flex:1;overflow-y:auto;padding:16px 18px 8px}
+.banner{border-radius:16px;padding:13px 15px;text-align:center;font-size:19px;font-weight:900;margin-bottom:13px}
+.banner.ok{background:linear-gradient(135deg,rgba(63,224,176,.28),rgba(63,224,176,.08));border:1px solid rgba(63,224,176,.5)}
+.banner.bad{background:linear-gradient(135deg,rgba(255,93,93,.26),rgba(255,93,93,.07));border:1px solid rgba(255,93,93,.45)}
+.banner small{display:block;font-size:11px;font-weight:600;color:var(--dim);margin-top:3px;letter-spacing:.6px}
+.lbl{font-size:10.5px;letter-spacing:1.6px;color:var(--mint);font-weight:900;text-transform:uppercase;margin:14px 0 7px}
+.lbl.gold{color:var(--gold)}
+.stepline{
+  display:flex;gap:10px;align-items:center;background:rgba(255,255,255,.045);border:1px solid var(--line);
+  border-radius:12px;padding:10px 12px;margin-bottom:7px
+}
+.stepline .num{width:20px;height:20px;border-radius:50%;background:var(--card2);display:grid;place-items:center;font-size:11px;font-weight:900;flex:none;color:var(--mint)}
+.stepline .m{font-family:Cambria,Georgia,serif;font-size:18px;font-weight:800;flex:1;text-align:center}
+.stepline .note{font-size:10.5px;color:var(--dim);flex:none;max-width:86px;text-align:right;line-height:1.35}
+.tipbox{background:rgba(255,207,92,.09);border:1px solid rgba(255,207,92,.32);border-radius:14px;padding:12px 14px;font-size:13px;line-height:1.7}
+.tipbox b{color:var(--gold)}
+.exsub{font-size:11.5px;color:var(--dim);font-style:italic;margin-top:-4px;margin-bottom:4px}
+
+/* ---------- 規則／數值面板 ---------- */
+.sheet{position:absolute;inset:0;background:rgba(6,4,16,.72);backdrop-filter:blur(4px);display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .2s;z-index:50}
+.sheet.on{opacity:1;pointer-events:auto}
+.sheet .inner{
+  width:100%;max-height:86%;background:linear-gradient(180deg,#241d50,#160f33);border-top:1px solid var(--line);
+  border-radius:22px 22px 0 0;padding:16px 18px calc(20px + env(safe-area-inset-bottom));overflow-y:auto;
+  transform:translateY(14px);transition:transform .24s
+}
+.sheet.on .inner{transform:translateY(0)}
+.sheet h3{margin:0 0 4px;font-size:18px}
+.kv{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed var(--line);font-size:13.5px}
+.kv b{font-variant-numeric:tabular-nums}
+.rule{margin-bottom:12px}
+.rule .t{font-weight:800;font-size:14px;color:var(--gold)}
+.rule .d{font-size:12.5px;color:#ddd6ff;line-height:1.65;margin-top:3px}
+.rule code{font-family:Cambria,Georgia,serif;background:rgba(255,255,255,.08);padding:1px 6px;border-radius:6px;font-size:14px}
+.wep{display:flex;gap:10px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:14px;margin-bottom:8px;background:rgba(255,255,255,.04)}
+.wep.on{border-color:var(--mint);background:rgba(63,224,176,.12)}
+.wep .em{font-size:26px}
+.wep .nm{font-weight:800;font-size:14px}
+.wep .st{font-size:11px;color:var(--dim)}
+.wep .buy{margin-left:auto;flex:none}
+
+/* ---------- 練習 ---------- */
+.practice-top{display:flex;gap:8px;align-items:center;padding:12px 14px 0}
+.clock{font-variant-numeric:tabular-nums;font-weight:900;font-size:19px;color:var(--gold)}
+.endstat{text-align:center;padding:22px 18px}
+.big{font-size:52px;font-weight:900;color:var(--mint);font-variant-numeric:tabular-nums;line-height:1}
+.toast{
+  position:absolute;left:50%;top:14%;transform:translate(-50%,-12px);background:rgba(20,14,48,.96);border:1px solid var(--line);
+  padding:10px 16px;border-radius:999px;font-size:13px;font-weight:700;box-shadow:var(--sh);opacity:0;transition:.22s;z-index:99;pointer-events:none;white-space:nowrap
+}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.shake{animation:shake .32s}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-9px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(4px)}}
+@media (max-height:640px){
+  #monster{font-size:50px}.arena{height:92px}.qtext{font-size:25px;margin:8px 0 4px}.keys button{padding:10px 0}
+}
+</style>
+</head>
+<body>
+<div id="phone">
+
+  <!-- ============ 首頁 ============ -->
+  <section id="s-home" class="scr on">
+    <div class="hero-badge">🧙‍♂️</div>
+    <div class="logo">代數勇者</div>
+    <div class="logo-en">ALGEBRA HERO</div>
+    <p class="home-tip">解方程＝出招打怪。答對就攻擊，答錯就要睇解題步驟。<br>Solve equations to attack. Six lands, six monsters.</p>
+    <div class="home-lv" id="homeLv">Lv.1 ‧ ⚔️12 ‧ 🪙0</div>
+    <button class="btn pri" id="btnPlay">開始冒險 <span class="zh">Start adventure</span></button>
+    <button class="btn" id="btnPractice">⚡ 5 分鐘混合練習 <span class="zh">Quick mixed practice</span></button>
+    <div class="row" style="gap:8px">
+      <button class="btn sm" id="btnRules">📖 招式表</button>
+      <button class="btn sm" id="btnStats">📊 戰績</button>
+      <button class="btn sm" id="btnSound">🔊 音效</button>
+    </div>
+    <div class="home-lv" style="margin-top:6px;opacity:.7">進度自動儲存在此手機</div>
+  </section>
+
+  <!-- ============ 地圖 ============ -->
+  <section id="s-map" class="scr">
+    <div class="top">
+      <button class="btn sm" id="mapBack">‹</button>
+      <div class="grow">
+        <div class="ttl">選擇關卡</div>
+        <div class="sub">Choose a land</div>
+      </div>
+      <span class="chip" id="mapChip">Lv.1</span>
+      <span class="chip" id="mapCoin">🪙0</span>
+    </div>
+    <div class="scroll grow pad" id="stageList"></div>
+  </section>
+
+  <!-- ============ 戰鬥 ============ -->
+  <section id="s-battle" class="scr">
+    <div class="top">
+      <button class="btn sm" id="flee">✕</button>
+      <div class="grow">
+        <div class="ttl" id="bTitle">第一關</div>
+        <div class="sub" id="bSub">STAGE 1</div>
+      </div>
+      <div class="energy" id="hearts"></div>
+    </div>
+
+    <div class="hpwrap">
+      <div class="avatar">🧙‍♂️</div>
+      <div style="flex:1">
+        <div class="row" style="justify-content:space-between;font-size:10.5px;color:var(--dim);margin-bottom:3px">
+          <span>YOU <b id="pHpTxt" style="color:var(--txt)">100</b></span>
+          <span id="comboTag"></span>
+        </div>
+        <div class="bar"><i id="pHpBar" style="background:linear-gradient(90deg,#54eec0,#1fb98d)"></i></div>
+        <div class="bar" style="margin-top:5px"><i id="pXpBar" style="background:linear-gradient(90deg,#ffcf5c,#ff9f2e);height:5px"></i></div>
+      </div>
+    </div>
+
+    <div class="hpwrap" style="margin-top:10px">
+      <div class="avatar" id="mIcon" style="background:linear-gradient(180deg,#ff7fb7,#c22a6d)">👹</div>
+      <div class="grow mon-box">
+        <div class="mon-name" id="mName">怪物 <em>Monster</em></div>
+        <div class="bar" style="margin-top:5px"><i id="mHpBar" style="background:linear-gradient(90deg,#ff7fb7,#e63f88)"></i></div>
+        <div style="font-size:10.5px;color:var(--dim);margin-top:3px;font-variant-numeric:tabular-nums" id="mHpTxt">100 / 100</div>
+      </div>
+    </div>
+
+    <div class="arena">
+      <div id="monster">👹</div>
+      <div class="pops" id="pops"></div>
+    </div>
+
+    <div class="qcard">
+      <div class="qhead"><span id="qTopic">SOLVE FOR x</span><span id="qNo">Q1</span></div>
+      <div class="qtext" id="qText">2x + 3 = 11</div>
+      <div class="qen" id="qEn">Solve for x.</div>
+      <div class="qhint hide" id="qHint"></div>
+    </div>
+    <div class="goal" id="bGoal"></div>
+
+    <div class="grow"></div>
+
+    <div class="ansarea" id="ansArea"></div>
+
+    <div class="bottom">
+      <button class="btn sm" id="hintBtn" style="flex:1">💡 提示 −1HP</button>
+      <button class="btn sm" id="wepBtn" style="flex:1">⚔️ 武器</button>
+    </div>
+  </section>
+
+  <!-- ============ 解說 ============ -->
+  <section id="s-explain" class="scr">
+    <div class="ex" id="exBody"></div>
+    <div class="bottom">
+      <button class="btn pri" id="exGo" style="flex:1">繼續 <span class="zh" id="exMsg">Continue</span></button>
+    </div>
+  </section>
+
+  <!-- ============ 5 分鐘混合練習 ============ -->
+  <section id="s-practice" class="scr">
+    <div class="practice-top">
+      <button class="btn sm" id="pQuit">✕</button>
+      <div class="grow">
+        <div class="ttl">混合練習</div>
+        <div class="sub">MIXED DRILL</div>
+      </div>
+      <span class="clock" id="pClock">5:00</span>
+    </div>
+    <div class="row" style="padding:8px 14px 0;gap:8px">
+      <span class="chip" id="pScore">✅0 ❌0</span>
+      <button class="btn sm" id="pqHintBtn">💡 提示</button>
+    </div>
+    <div class="goal" id="pGoal"></div>
+    <div class="qcard" style="margin-top:10px">
+      <div class="qhead"><span id="pqTopic">SOLVE FOR x</span><span>QUICK</span></div>
+      <div class="qtext" id="pqText">2x + 3 = 11</div>
+      <div class="qen" id="pqEn">Solve for x.</div>
+    </div>
+    <div class="grow"></div>
+    <div class="ansarea" id="pAns" style="padding-bottom:calc(14px + env(safe-area-inset-bottom))"></div>
+  </section>
+
+  <!-- ============ 練習結算 ============ -->
+  <section id="s-result" class="scr">
+    <div class="scroll grow">
+      <div class="endstat">
+        <div style="font-size:46px">🏁</div>
+        <div class="big" id="rsScore">0</div>
+        <div style="color:var(--dim);font-size:12px;margin-top:4px">答對題數 ‧ correct</div>
+        <div id="rsDetail" style="margin-top:16px;font-size:13.5px;line-height:2;color:#ddd6ff"></div>
+      </div>
+      <div class="pad">
+        <div class="lbl">弱項提示 ‧ WEAK SPOTS</div>
+        <div id="rsWeak" style="font-size:13px;line-height:1.8;color:#ddd6ff"></div>
+      </div>
+    </div>
+    <div class="bottom">
+      <button class="btn pri" id="rsHome" style="flex:1">返回首頁 <span class="zh">Home</span></button>
+    </div>
+  </section>
+
+  <!-- ============ 彈出面板 ============ -->
+  <div class="sheet" id="sheet"><div class="inner" id="sheetInner"></div></div>
+  <div class="toast" id="toast"></div>
+  <pre id="selftest" hidden></pre>
+</div>
+
+<script>
+'use strict';
+/* =====================================================================
+   代數勇者 Algebra Hero — 單檔手機遊戲
+   A: 題目引擎 (question engine, verified)
+   B: 遊戲狀態 / 戰鬥 / 介面
+   ===================================================================== */
+
+/* ---------------- 小工具 ---------------- */
+const $  = (s, r) => (r || document).querySelector(s);
+const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
+const rnd = n => Math.floor(Math.random() * n);
+const ri  = (a, b) => a + rnd(b - a + 1);            // 含頭含尾
+const pick = a => a[rnd(a.length)];
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const gcd = (a, b) => { a = Math.abs(a); b = Math.abs(b); while (b) { [a, b] = [b, a % b]; } return a || 1; };
+
+/* ---------------- 分數工具 ---------------- */
+function F(n, d) {
+  if (d === 0) throw new Error('zero denominator');
+  if (d < 0) { n = -n; d = -d; }
+  const g = gcd(n, d);
+  return { n: n / g, d: d / g };
+}
+const fInt = n => F(n, 1);
+const fEq  = (a, b) => a.n * b.d === b.n * a.d;
+const fIsInt = f => f.d === 1;
+const SUPER = { 2: '²', 3: '³', 4: '⁴' };
+
+/* x 項／常數項 排版：3x-5、x+2、-x+7 */
+function lin(c, k, varName) {           // c*x + k
+  const v = varName || 'x';
+  let s = '';
+  if (c === 0) s = '';
+  else if (c === 1) s = v;
+  else if (c === -1) s = '-' + v;
+  else s = c + v;
+  if (k === 0) return s === '' ? '0' : s;
+  if (k > 0) return (s === '' ? '' : s + ' + ') + k;
+  return (s === '' ? '-' : s + ' - ') + Math.abs(k);
+}
+/* 右邊：把「減一個數」寫成 + (-n)，令移項規則一致 */
+function rhs(k) { return k >= 0 ? '+ ' + k : '- ' + Math.abs(k); }
+
+/* ---------------- A: 題目產生器 ----------------
+   每題：{ topic, lvl, prompt, en, ans:{n,d}, ansText, format:'mc'|'type',
+           options:[{n,d,text}], steps:[[式子, 說明]], tip:[中文, English] }
+   ------------------------------------------------- */
+
+function uniqOptions(correct, gen, want) {
+  const out = [], seen = [correct];
+  let guard = 0;
+  while (out.length < want - 1 && guard++ < 300) {
+    const c = gen();
+    if (!c) continue;
+    if (seen.some(s => fEq(s, c))) continue;
+    seen.push(c); out.push(c);
+  }
+  return shuffle([correct].concat(out));
+}
+function mcQ(base, correct, gen, tip) {
+  const opts = uniqOptions(correct, gen, 4);
+  if (opts.length < 4) return null;                  // 選項不足就丟棄重抽
+  base.options = opts.map(o => ({ n: o.n, d: o.d, text: fracText(o), ok: fEq(o, correct), reason: wrongReason(fInt(correct.n), o) }));
+  base.ans = { n: correct.n, d: correct.d };
+  base.ansText = fracText(correct);
+  return base;
+}
+/* 針對最常見錯誤：移項忘了變號
+   Forgot to flip the sign when transposing */
+function wrongReason(correct, cand) {
+  if (fEq(fInt(-correct.n), cand)) return '移項時忘記變號（加變減／減變加）<br>You forgot to flip the sign.';
+  if (fEq(fInt(2 * correct.n), cand)) return '兩邊只做了一邊，或者乘除搞反<br>Only one side was changed.';
+  return null;
+}
+/* 每題按鈕都記住自己嘅數值／字串，避免用文字比對 */
+function keyBtn(text, val, fn, cls) {
+  const b = document.createElement('button');
+  b.textContent = text;
+  b.__v = val;
+  if (cls) b.className = cls;
+  if (fn) b.onclick = fn;
+  return b;
+}
+/* 共用數字／分數鍵盤。onSubmit(buf, again) 回傳非 null 就鎖鍵盤。
+   Shared number pad: returning non-null from onSubmit locks the keys. */
+function numPad(onSubmit, maxLen) {
+  const wrap = document.createElement('div');
+  const disp = document.createElement('div');
+  disp.className = 'display empty';
+  disp.textContent = '輸入答案 type your answer';
+  wrap.appendChild(disp);
+  const keys = document.createElement('div'); keys.className = 'keys';
+  let buf = '';
+  const setDisp = () => { disp.textContent = buf || '輸入答案 type your answer'; disp.classList.toggle('empty', !buf); };
+  const add = t => { if (buf.length < (maxLen || 9)) { buf += t; setDisp(); sfx.tap(); } };
+  const del = () => { buf = buf.slice(0, -1); setDisp(); };
+  const clr = () => { buf = ''; setDisp(); };
+  const lock = () => $$('button', keys).forEach(b => { b.disabled = true; });
+  const unlock = () => $$('button', keys).forEach(b => { b.disabled = false; });
+  const submit = () => {
+    if (!buf) { toast('先輸入答案 Enter an answer'); return; }
+    let res = null;
+    try { res = onSubmit(buf, unlock); } catch (e) {}
+    if (res === null || res === undefined) return;
+    if (res === false) { disp.style.borderColor = 'var(--red)'; return; }
+    lock();
+    disp.style.borderColor = res === 'bad' ? 'var(--red)' : 'var(--mint)';
+  };
+  const defs = [
+    ['1', () => add('1')], ['2', () => add('2')], ['3', () => add('3')], ['⌫', del, 'alt'],
+    ['4', () => add('4')], ['5', () => add('5')], ['6', () => add('6')], ['−', () => add('-'), 'alt'],
+    ['7', () => add('7')], ['8', () => add('8')], ['9', () => add('9')], ['/', () => add('/'), 'alt'],
+    ['0', () => add('0')], ['清除', clr, 'alt'], ['確定', submit, 'act wide']
+  ];
+  defs.forEach(d => {
+    const b = keyBtn(d[0], null, e => { e.preventDefault(); d[1](); }, d[2]);
+    keys.appendChild(b);
+  });
+  wrap.appendChild(keys);
+  return wrap;
+}
+function fracText(f) {
+  if (f.d === 1) return String(f.n);
+  const whole = Math.trunc(f.n / f.d), rem = Math.abs(f.n % f.d);
+  if (whole !== 0) return whole + ' ' + rem + '/' + f.d;
+  return (f.n < 0 ? '-' : '') + rem + '/' + f.d;
+}
+
+/* --- L1 一步方程：x + a = b / x - a = b / ax = b / x/a = b --- */
+function g1() {
+  const x = ri(2, 12), kind = pick(['plus', 'minus', 'times', 'div']);
+  let prompt, en, steps, tip, vf;
+  if (kind === 'plus') {    const a = ri(2, 15), b = x + a;
+    prompt = 'x + ' + a + ' = ' + b; en = 'Solve for x.';
+    vf = v => v + a === b;
+    steps = [['x + ' + a + ' = ' + b, '原式 Original'],
+             ['x = ' + b + ' − ' + a, '兩邊同時減 ' + a + '<br>Subtract ' + a],
+             ['x = ' + x, '答案 ✓']];
+    tip = ['加數要「減」返去。加法用減法還原。<br>Addition is undone by subtraction.',
+           'Check: ' + x + ' + ' + a + ' = ' + b + ' ✓'];
+    return mcQ({ topic: '一步方程 One-step', lvl: 1, prompt, en, format: 'mc', steps, tip, vf },
+      fInt(x), () => fInt(ri(-6, 20)), tip);
+  }
+  if (kind === 'minus') {
+    const a = ri(2, 15), b = Math.max(1, x - a);
+    const ans = b + a;
+    prompt = 'x − ' + a + ' = ' + b; en = 'Solve for x.';
+    vf = v => v - a === b;
+    steps = [['x − ' + a + ' = ' + b, '原式 Original'],
+             ['x = ' + b + ' + ' + a, '兩邊同時加 ' + a + '<br>Add ' + a],
+             ['x = ' + ans, '答案 ✓']];
+    tip = ['「減」要用「加」還原。留意係加返去，唔係再減。<br>Subtraction is undone by adding back, not subtracting again.',
+           'Check: ' + ans + ' − ' + a + ' = ' + b + ' ✓'];
+    return mcQ({ topic: '一步方程 One-step', lvl: 1, prompt, en, format: 'mc', steps, tip, vf },
+      fInt(ans), () => fInt(ri(1, 30)), tip);
+  }
+  if (kind === 'times') {
+    const a = ri(2, 8), b = a * x;
+    prompt = a + 'x = ' + b; en = 'Solve for x.';
+    vf = v => a * v === b;
+    steps = [[a + 'x = ' + b, '原式 Original'],
+             ['x = ' + b + ' ÷ ' + a, '兩邊同時除 ' + a + '<br>Divide by ' + a],
+             ['x = ' + x, '答案 ✓']];
+    tip = ['係數要「除」返去。' + a + 'x 即 ' + a + ' × x。<br>Divide by the coefficient.',
+           'Check: ' + a + ' × ' + x + ' = ' + b + ' ✓'];
+    return mcQ({ topic: '一步方程 One-step', lvl: 1, prompt, en, format: 'mc', steps, tip, vf },
+      fInt(x), () => fInt(ri(1, 16)), tip);
+  }
+  const a = ri(2, 8), b = a * x;
+  prompt = 'x/' + a + ' = ' + b; en = 'Solve for x.';
+  vf = v => v / a === b;
+  steps = [['x/' + a + ' = ' + b, '原式 Original'],
+           ['x = ' + b + ' × ' + a, '兩邊同時乘 ' + a + '<br>Multiply by ' + a],
+           ['x = ' + b * a, '答案 ✓']];
+  tip = ['除咗就要「乘」返去，兩邊一齊做就唔會失衡。<br>Multiply both sides to undo division.',
+         'Check: ' + (b * a) + ' ÷ ' + a + ' = ' + b + ' ✓'];
+  return mcQ({ topic: '一步方程 One-step', lvl: 1, prompt, en, format: 'mc', steps, tip, vf },
+    fInt(b * a), () => fInt(ri(2, 60)), tip);
+}
+
+/* 兩種常見錯誤選項：中間值（忘記除）／負數（除錯方向） */
+function twoStepDistractors(a, b, c, x) {
+  return () => {
+    const r = rnd(3);
+    if (r === 0) return fInt(c - b);            // 忘記除係數
+    if (r === 1) return fInt(c + b);            // 移項後符號冇變
+    return fInt(-x);                            // 正負搞錯
+  };
+}
+
+/* --- L2 兩步方程：ax + b = c --- */
+function g2() {
+  const a = ri(2, 9), x = ri(2, 12), b = ri(2, 14), c = a * x + b;
+  const prompt = lin(a, b) + ' = ' + c;
+  const steps = [[prompt, '原式 Original'],
+                 [lin(a, 0) + ' = ' + c + ' − ' + b, '先移常數項（' + b + ' 搬去右邊變減）<br>Move the constant'],
+                 [lin(a, 0) + ' = ' + (c - b), '化簡 Simplify'],
+                 ['x = ' + (c - b) + ' ÷ ' + a, '兩邊除 ' + a + '<br>Divide by ' + a],
+                 ['x = ' + x, '答案 ✓']];
+  const tip = ['兩步方程：先處理加減，後處理乘除。順序反過來就錯。<br>Two steps: undo +/− first, then ×/÷.',
+               'Check: ' + a + '×' + x + ' + ' + b + ' = ' + c + ' ✓'];
+  return mcQ({ topic: '兩步方程 Two-step', lvl: 2, prompt, en: 'Solve for x.',
+    format: 'mc', steps, tip, vf: v => a * v + b === c },
+    fInt(x), twoStepDistractors(a, b, c, x), tip);
+}
+
+/* --- L3 兩邊都有 x：ax + b = cx + d --- */
+function g3() {
+  const x = ri(2, 10), a = ri(4, 9);
+  const c = ri(1, a - 2);            // a > c
+  let b = ri(2, 12), d = (a - c) * x + b;   // d 一定大過 b
+  if (d - b <= 0) return null;
+  const lhs = lin(a, b), rhsS = lin(c, d);
+  const prompt = lhs + ' = ' + rhsS;
+  const steps = [[prompt, '原式 Original'],
+                 [lin(a - c, b) + ' = ' + d, '兩邊同時減 ' + lin(c, 0) + '，把 x 集中左邊<br>Subtract ' + lin(c, 0) + ' from both sides'],
+                 [lin(a - c, 0) + ' = ' + d + ' − ' + b, '再移常數項<br>Move the constant'],
+                 [lin(a - c, 0) + ' = ' + (d - b), '化簡 Simplify'],
+                 ['x = ' + (d - b) + ' ÷ ' + (a - c), '兩邊除 ' + (a - c) + '<br>Divide by ' + (a - c)],
+                 ['x = ' + x, '答案 ✓']];
+  const tip = ['兩邊都有 x：先搬 x 去一邊（大減細可避免負數），再搬常數。<br>Collect x on one side first, then move constants.',
+               'Check: ' + a + '×' + x + '+' + b + ' = ' + (a * x + b) + ' ／ ' + c + '×' + x + '+' + d + ' = ' + (c * x + d) + ' ✓'];
+  return mcQ({ topic: '兩邊有 x Both sides', lvl: 3, prompt, en: 'Solve for x.',
+    format: 'mc', steps, tip, vf: v => a * v + b === c * v + d },
+    fInt(x), () => { const g = ri(-4, 6); return g === 0 ? null : fInt(x + g); }, tip);
+}
+
+/* --- L4 括號方程：a(x + b) = c、a(x − b) = c、a(x + b) = d(x + e) --- */
+function g4() {
+  const x = ri(2, 10), a = ri(2, 7), b = ri(2, 9);
+  if (rnd(2) === 0) {
+    const c = a * (x + b);
+    const prompt = a + '(x + ' + b + ') = ' + c;
+    const steps = [[prompt, '原式 Original'],
+                   [a + 'x + ' + (a * b) + ' = ' + c, '展開括號（' + a + ' 乘晒裡面每一項）<br>Expand the bracket'],
+                   [a + 'x = ' + c + ' − ' + (a * b), '移常數項<br>Move the constant'],
+                   [a + 'x = ' + (c - a * b), '化簡 Simplify'],
+                   ['x = ' + x, '兩邊除 ' + a + ' → 答案 ✓']];
+    const tip = ['括號前的數字要乘「裡面每一項」，唔止第一項。<br>Multiply every term inside the bracket.',
+                 'Check: ' + a + '(' + x + ' + ' + b + ') = ' + a + ' × ' + (x + b) + ' = ' + c + ' ✓'];
+    return mcQ({ topic: '括號方程 Brackets', lvl: 4, prompt, en: 'Solve for x.',
+      format: 'mc', steps, tip, vf: v => a * (v + b) === c },
+      fInt(x), () => { const g = ri(-4, 6); return g === 0 ? null : fInt(x + g); }, tip);
+  }
+  const c = ri(2, 5), b2 = ri(2, 7);
+  const d = a * (x + b), e = c * (x + b2);          // a(x+b) = c(x+b2)  → x = (c*b2 - a*b)/(a-c)
+  if (a === c) return null;
+  const den = a - c, num = c * b2 - a * b;
+  const val = F(num, den);
+  if (!fIsInt(val) || val.n < 1 || val.n > 16) return null;
+  const X = val.n;
+  const prompt = a + '(x + ' + b + ') = ' + c + '(x + ' + b2 + ')';
+  const steps = [[prompt, '原式 Original'],
+                 [a + 'x + ' + (a * b) + ' = ' + c + 'x + ' + (c * b2), '兩邊展開括號<br>Expand both sides'],
+                 [lin(a - c, a * b) + ' = ' + (c * b2), 'x 集中左邊（兩邊減 ' + lin(c, 0) + '）<br>Collect x'],
+                 [lin(a - c, 0) + ' = ' + (c * b2 - a * b), '移常數項<br>Move the constant'],
+                 ['x = ' + X, '兩邊除 ' + (a - c) + ' → 答案 ✓']];
+  const tip = ['兩邊都有括號：先各自展開，再搬 x、搬常數。<br>Expand both sides first, then collect like terms.',
+               'Check: ' + a + '(' + X + '+' + b + ') = ' + (a * (X + b)) + ' ／ ' + c + '(' + X + '+' + b2 + ') = ' + (c * (X + b2)) + ' ✓'];
+  return mcQ({ topic: '括號方程 Brackets', lvl: 4, prompt, en: 'Solve for x.',
+    format: 'mc', steps, tip, vf: v => a * (v + b) === c * (v + b2) },
+    val, () => { const g = ri(-4, 6); return g === 0 ? null : fInt(X + g); }, tip);
+}
+
+/* --- L5 分數方程：x/a + b = c、a/x 型、分數係數 --- */
+function g5() {
+  const kind = rnd(3);
+  if (kind === 0) {
+    const a = ri(2, 9), x = a * ri(2, 9), b = ri(2, 12), c = x / a + b;
+    const prompt = 'x/' + a + ' + ' + b + ' = ' + c;
+    const steps = [[prompt, '原式 Original'],
+                   ['x/' + a + ' = ' + c + ' − ' + b, '移常數項<br>Move the constant'],
+                   ['x/' + a + ' = ' + (c - b), '化簡 Simplify'],
+                   ['x = ' + (c - b) + ' × ' + a, '兩邊乘 ' + a + '，清走分母<br>Multiply by ' + a],
+                   ['x = ' + x, '答案 ✓']];
+    const tip = ['清分母：兩邊一齊乘分母，就唔再見分數。<br>Clear the denominator by multiplying both sides.',
+                 'Check: ' + x + '/' + a + ' + ' + b + ' = ' + c + ' ✓'];
+    return { topic: '分數方程 Fractions', lvl: 5, prompt, en: 'Solve for x. Type like 7 or -3/4.',
+      format: 'type', ans: fInt(x), ansText: String(x), steps, tip, vf: v => v / a + b === c };
+  }
+  if (kind === 1) {
+    const a = ri(2, 9), num = a * ri(2, 9), c = ri(2, 10), b = num / c - a;
+    if (!Number.isInteger(b) || b < 1) return null;
+    const prompt = 'x/' + c + ' − ' + a + ' = ' + b;
+    const steps = [[prompt, '原式 Original'],
+                   ['x/' + c + ' = ' + b + ' + ' + a, '移常數項（減 ' + a + ' 變加 ' + a + '）<br>Move the constant'],
+                   ['x/' + c + ' = ' + (b + a), '化簡 Simplify'],
+                   ['x = ' + (b + a) + ' × ' + c, '兩邊乘 ' + c + '<br>Multiply by ' + c],
+                   ['x = ' + num, '答案 ✓']];
+    const tip = ['「減」移去右邊就變「加」，唔好跟住一齊減。<br>Subtraction becomes addition when it crosses the equals sign.',
+                 'Check: ' + num + '/' + c + ' − ' + a + ' = ' + b + ' ✓'];
+    return { topic: '分數方程 Fractions', lvl: 5, prompt, en: 'Solve for x. Type like 7 or -3/4.',
+      format: 'type', ans: fInt(num), ansText: String(num), steps, tip, vf: v => v / c - a === b };
+  }
+  const a = ri(2, 6), b = ri(2, 6), m = ri(2, 6);
+  const k = (a + b) * m;                 // 令答案一定係整數：x = a*b*m
+  const X = a * b * m;
+  const prompt = '(x/' + a + ') + (x/' + b + ') = ' + k;
+  const steps = [[prompt, '原式 Original'],
+                 ['x(' + b + '/' + (a * b) + ' + ' + a + '/' + (a * b) + ') = ' + k, '通分：公分母 ' + (a * b) + '<br>Common denominator ' + (a * b)],
+                 ['x × ' + (a + b) + '/' + (a * b) + ' = ' + k, '合併分子<br>Combine'],
+                 ['x = ' + k + ' × ' + (a * b) + ' ÷ ' + (a + b), '兩邊乘 ' + (a * b) + ' 再除 ' + (a + b) + '<br>Multiply then divide'],
+                 ['x = ' + X, '答案 ✓']];
+  const tip = ['分母唔同先通分，再合併分子，最後才移項。<br>Get a common denominator before combining.',
+               'Check: ' + X + '/' + a + ' + ' + X + '/' + b + ' = ' + (X / a) + ' + ' + (X / b) + ' = ' + k + ' ✓'];
+  return { topic: '分數方程 Fractions', lvl: 5, prompt, en: 'Solve for x. Type like 7 or -3/4.',
+    format: 'type', ans: fInt(X), ansText: String(X), steps, tip,
+    vf: v => Math.abs(v / a + v / b - k) < 1e-9 };
+}
+
+/* --- L6 公式變換：subject of formula（以算式為答案，用選項作答） --- */
+function g6() {
+  const forms = [
+    { q: 'A = a + 2b',   ask: 'b',  ans: '(A − a)/2', wrong: ['(A + a)/2', 'A/2 − a', '(a − A)/2'], en: 'Make b the subject.' },
+    { q: 'P = 2(l + b)', ask: 'b',  ans: 'P/2 − l',   wrong: ['P/2 + l', '(P − 2)/l', 'P − 2l'],    en: 'Make b the subject.' },
+    { q: 'v = u + at',   ask: 't',  ans: '(v − u)/a', wrong: ['(v + u)/a', 'v/a − u', '(u − v)/a'], en: 'Make t the subject.' },
+    { q: 'S = D/T',      ask: 'T',  ans: 'D/S',       wrong: ['S/D', 'S × D', 'D − S'],              en: 'Make T the subject.' },
+    { q: 'A = πr²',      ask: 'r',  ans: '√(A/π)',    wrong: ['A/π', '√A/π', '2πA'],                 en: 'Make r the subject.' },
+    { q: 'C = 2πr',      ask: 'r',  ans: 'C/(2π)',    wrong: ['C/2 × π', '2Cπ', 'C − 2π'],           en: 'Make r the subject.' },
+    { q: 'y = mx + c',   ask: 'x',  ans: '(y − c)/m', wrong: ['(y + c)/m', 'y/m − c', '(c − y)/m'],  en: 'Make x the subject.' },
+    { q: 'F = (9C/5) + 32', ask: 'C', ans: '5(F − 32)/9', wrong: ['5(F + 32)/9', '9(F − 32)/5', '(F − 32)/5'], en: 'Make C the subject.' },
+    { q: 'V = (1/3)Ah',  ask: 'h',  ans: '3V/A',      wrong: ['V/(3A)', '3A/V', 'V/A − 3'],          en: 'Make h the subject.' },
+    { q: '1/f = 1/u + 1/v', ask: 'f', ans: 'uv/(u + v)', wrong: ['(u + v)/uv', 'uv/(u − v)', 'u + v'], en: 'Make f the subject.' }
+  ];
+  const f = pick(forms);
+  const opts = shuffle([f.ans].concat(f.wrong));
+  const steps = [[f.q, '原式 Original'],
+                 [f.ask + ' = ?', '把 ' + f.ask + ' 單獨留在一邊<br>Isolate ' + f.ask],
+                 [f.ask + ' = ' + f.ans, '答案 ✓']];
+  const tip = ['公式變換＝解方程，只係字母代替數字。做法一樣：移項、兩邊同時加減乘除。<br>Changing the subject is the same as solving an equation.',
+               'If unsure, substitute numbers and test each option.'];
+  return {
+    topic: '公式變換 Subject of formula', lvl: 6, prompt: f.q, en: f.en + '（答案係算式 / your answer is an expression）',
+    format: 'mc-expr', options: opts.map(o => ({ text: o })), ansText: f.ans, steps, tip
+  };
+}
+
+const GENS = { 1: g1, 2: g2, 3: g3, 4: g4, 5: g5, 6: g6 };
+
+function makeQuestion(lvl) {
+  for (let i = 0; i < 80; i++) {
+    const q = GENS[lvl]();
+    if (q) { q.lvl = lvl; return q; }
+  }
+  return g1();
+}
+
+/* ---------------- 答案核對 ---------------- */
+function parseAnswer(raw) {
+  const s = String(raw).trim().replace(/\s+/g, '');
+  if (!s) return null;
+  if (s === '無解' || s === 'no solution' || s.toLowerCase() === 'none') return { none: true };
+  if (s === '任意' || s === 'all') return { any: true };
+  let m;
+  if ((m = /^(-?\d+)\/(-?\d+)$/.exec(s))) { const d = +m[2]; if (d === 0) return null; return F(+m[1], d); }
+  if ((m = /^(-?\d+)$/.exec(s))) return fInt(+m[1]);
+  return null;
+}
+function checkAnswer(q, val) {
+  if (q.format === 'mc-expr') return { ok: val === q.ansText };
+  if (!q.ans) return { ok: false };
+  const f = parseAnswer(val);
+  if (!f) return { ok: false, bad: true };
+  return { ok: fEq(f, q.ans) };
+}
+
+/* =====================================================================
+   B: 遊戲
+   ===================================================================== */
+const STAGES = [
+  { lv: 1, name: '新手草原', en: 'Rookie Meadow',    icon: '🟢', mon: '史萊姆',   monEn: 'Slime',        emoji: '🟢', hp: 80,  dmg: 8,  gold: 20, topic: '一步方程' },
+  { lv: 2, name: '逆運森林', en: 'Inverse Forest',   icon: '🌲', mon: '逆運魔',   monEn: 'Inverse Imp',  emoji: '👺', hp: 120, dmg: 10, gold: 28, topic: '兩步方程' },
+  { lv: 3, name: '雙xi峽谷', en: 'Two-x Canyon',     icon: '🏜️', mon: '雙頭x獸',  monEn: 'Twin-x Beast', emoji: '🐲', hp: 150, dmg: 12, gold: 38, topic: '兩邊有 x' },
+  { lv: 4, name: '括號神殿', en: 'Bracket Temple',   icon: '🏛️', mon: '括號巨人', monEn: 'Bracket Giant',emoji: '🗿', hp: 180, dmg: 14, gold: 50, topic: '括號方程' },
+  { lv: 5, name: '分數冰原', en: 'Fraction Glacier', icon: '❄️', mon: '分數雪怪', monEn: 'Fraction Yeti',emoji: '🦣', hp: 210, dmg: 16, gold: 64, topic: '分數方程' },
+  { lv: 6, name: '魔王公式塔', en: 'Formula Tower',  icon: '🗼', mon: '公式魔王', monEn: 'Formula Demon',emoji: '😈', hp: 240, dmg: 18, gold: 90, topic: '公式變換' }
+];
+const WEAPONS = [
+  { id: 'w0', name: '木劍',   en: 'Wooden sword', em: '🗡️', dmg: 8,  cost: 0,   lv: 1 },
+  { id: 'w1', name: '鐵劍',   en: 'Iron sword',   em: '⚔️', dmg: 12, cost: 60,  lv: 2 },
+  { id: 'w2', name: '火焰劍', en: 'Flame blade',  em: '🔥', dmg: 17, cost: 150, lv: 3 },
+  { id: 'w3', name: '雷電矛', en: 'Thunder spear',em: '⚡', dmg: 23, cost: 300, lv: 5 },
+  { id: 'w4', name: '聖光杖', en: 'Holy staff',   em: '🌟', dmg: 30, cost: 520, lv: 6 }
+];
+const GOALS = [
+  '🎯 目標：一步一步還原運算，令左邊只剩 <b>x = ?</b><br>Goal: undo each operation until x stands alone.',
+  '🎯 目標：先搬走常數，再除係數，令 <b>x = ?</b><br>Goal: move the constant first, then divide by the coefficient.',
+  '🎯 目標：兩邊都有 x 時，先收集 x 到一邊，再搬常數<br>Goal: collect x on one side first.',
+  '🎯 目標：括號要展開，裡面<b>每一項</b>都要乘<br>Goal: expand the bracket — multiply every term.',
+  '🎯 目標：清走分母（兩邊同乘），答案可以係分數<br>Goal: clear the denominator; fractions are allowed.',
+  '🎯 目標：公式變換＝解方程，只係字母代替數字<br>Goal: changing the subject is still solving an equation.'
+];
+const RULES = [
+  { t: '⚖️ 天秤法則 Balance rule', d: '方程係一個天秤。你在左邊做乜，右邊都要做同一樣，等號才會保持平衡。<br>Whatever you do to one side, do to the other side.' },
+  { t: '🔁 移項 Transposition', d: '<code>x + 3 = 10</code> → <code>x = 10 − 3</code>。搬過等號，符號要反：<b>加變減、減變加</b>。<br>Move a term across and flip its sign.' },
+  { t: '✖️ 係數要除 Coefficient', d: '<code>4x = 20</code> → <code>x = 20 ÷ 4</code>。x 前面乘住幾多，就兩邊除幾多。' },
+  { t: '🧩 括號要展開 Expand brackets', d: '<code>3(x + 2) = 3x + 6</code>。括號前嘅數要乘晒裡面<b>每一項</b>，唔止第一項。' },
+  { t: '🔀 兩邊都有 x Both sides', d: '<code>5x + 1 = 2x + 13</code>：先兩邊減 <code>2x</code> 收集 x，再搬常數。<br>Collect x on one side first.' },
+  { t: '½ 分數清分母 Clear fractions', d: '<code>x/3 + 2 = 5</code>：先搬常數，再兩邊乘 3。分母唔同就先通分。' },
+  { t: '🔤 公式變換 Change the subject', d: '同解方程一樣，只係字母代替數字。<code>A = a + 2b</code> → <code>2b = A − a</code> → <code>b = (A − a)/2</code>。' },
+  { t: '✅ 驗算 Substitute back', d: '永遠把答案代回原式檢查。做完一秒，信心十倍。' }
+];
+
+const DEF = {
+  v: 1, level: 1, xp: 0, gold: 0, weapon: 'w0', owned: ['w0'],
+  cleared: {}, best: {}, stats: { asked: 0, right: 0, wrong: 0 }, sound: true, seenIntro: false,
+  byTopic: {}, streakBest: 0
+};
+let S = load();
+function load() {
+  try {
+    const raw = localStorage.getItem('algebraHero.v1');
+    if (!raw) return JSON.parse(JSON.stringify(DEF));
+    const o = JSON.parse(raw);
+    return Object.assign(JSON.parse(JSON.stringify(DEF)), o);
+  } catch (e) { return JSON.parse(JSON.stringify(DEF)); }
+}
+function save() { try { localStorage.setItem('algebraHero.v1', JSON.stringify(S)); } catch (e) {} }
+
+const xpNeed = lv => Math.round(70 + 38 * Math.pow(lv, 1.42));
+function weapon() { return WEAPONS.find(w => w.id === S.weapon) || WEAPONS[0]; }
+function playerPower() { return weapon().dmg + (S.level - 1) * 2.5; }
+function monsterHp(lv) { const s = STAGES[lv - 1]; return s.hp || 100; }
+
+/* ---------------- 音效（Web Audio，無需檔案） ---------------- */
+let AC = null;
+function beep(freq, dur, type, vol) {
+  if (!S.sound) return;
+  try {
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+    const o = AC.createOscillator(), g = AC.createGain();
+    o.type = type || 'square'; o.frequency.value = freq;
+    g.gain.value = vol == null ? 0.06 : vol;
+    o.connect(g); g.connect(AC.destination);
+    const t = AC.currentTime;
+    g.gain.setValueAtTime(g.gain.value, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.start(t); o.stop(t + dur + 0.02);
+  } catch (e) {}
+}
+const sfx = {
+  hit:  () => { beep(620, .09, 'square', .05); setTimeout(() => beep(880, .07, 'square', .04), 55); },
+  crit: () => { beep(760, .08, 'sawtooth', .06); setTimeout(() => beep(1100, .1, 'square', .05), 60); },
+  wrong:() => { beep(200, .16, 'sawtooth', .05); setTimeout(() => beep(150, .2, 'sawtooth', .05), 90); },
+  win:  () => { [520, 660, 780, 1040].forEach((f, i) => setTimeout(() => beep(f, .13, 'triangle', .06), i * 90)); },
+  lvl:  () => { [660, 880].forEach((f, i) => setTimeout(() => beep(f, .18, 'triangle', .06), i * 110)); },
+  tap:  () => beep(440, .04, 'sine', .03)
+};
+
+/* ---------------- 介面工具 ---------------- */
+const scr = id => { $$('.scr').forEach(s => s.classList.toggle('on', s.id === id)); };
+/* 診斷用：目前邊個畫面開住 */
+const curScreen = () => { const e = $$('.scr').find(s => s.classList.contains('on')); return e ? e.id : 'none'; };
+let toastT = null;
+function toast(msg) {
+  const t = $('#toast'); t.textContent = msg; t.classList.add('on');
+  clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 1500);
+}
+function sheet(title, sub, html) {
+  $('#sheetInner').innerHTML =
+    '<div class="row" style="justify-content:space-between;align-items:flex-start">' +
+      '<div><h3>' + title + '</h3><div style="font-size:11px;color:var(--dim);letter-spacing:.6px">' + (sub || '') + '</div></div>' +
+      '<button class="btn sm" id="sheetX">✕</button>' +
+    '</div><div style="height:12px"></div>' + html;
+  $('#sheet').classList.add('on');
+  $('#sheetX').onclick = () => $('#sheet').classList.remove('on');
+}
+$('#sheet').addEventListener('click', e => { if (e.target.id === 'sheet') $('#sheet').classList.remove('on'); });
+
+function refreshHome() {
+  $('#homeLv').textContent = 'Lv.' + S.level + ' ‧ ⚔️' + Math.round(playerPower()) +
+    ' ‧ 🪙' + S.gold + ' ‧ ⭐' + Object.keys(S.cleared).length + '/6';
+  $('#btnSound').textContent = S.sound ? '🔊 音效' : '🔇 靜音';
+}
+
+/* ---------------- 地圖 ---------------- */
+function renderMap() {
+  $('#mapChip').textContent = 'Lv.' + S.level;
+  $('#mapCoin').textContent = '🪙' + S.gold;
+  const host = $('#stageList'); host.innerHTML = '';
+  STAGES.forEach((s, i) => {
+    const unlocked = i === 0 || S.cleared[i];
+    const stars = S.best[s.lv] || 0;
+    const el = document.createElement('div');
+    el.className = 'stage' + (unlocked ? '' : ' locked') + (S.cleared[s.lv] ? ' cleared' : '');
+    el.innerHTML =
+      '<div class="icon">' + s.icon + '</div>' +
+      '<div class="mid">' +
+        '<div class="nm">' + s.lv + '. ' + s.name + '</div>' +
+        '<div class="meta">' + s.mon + ' ‧ ' + s.topic + ' ‧ HP ' + monsterHp(s.lv) + '</div>' +
+        '<div class="stars">' + (stars ? '★'.repeat(stars) + '☆'.repeat(3 - stars) : (unlocked ? '未通關 not cleared' : '🔒 先過上一關')) + '</div>' +
+      '</div>' +
+      '<div class="go">' + (unlocked ? '▶' : '🔒') + '</div>';
+    if (!S.cleared[s.lv] && unlocked && s.lv > 1) {
+      const p = document.createElement('div'); p.className = 'pill'; p.textContent = 'NEXT'; el.appendChild(p);
+    }
+    el.onclick = () => {
+      if (!unlocked) { toast('🔒 要先通過上一關 Pass the previous land'); return; }
+      sfx.tap(); startBattle(s.lv);
+    };
+    host.appendChild(el);
+  });
+}
+
+/* ---------------- 戰鬥 ---------------- */
+let B = null;
+
+function startBattle(lv) {
+  const st = STAGES[lv - 1];
+  B = {
+    lv, st, mHp: monsterHp(lv), mMax: monsterHp(lv), pHp: 100, combo: 0, qNo: 0,
+    right: 0, wrong: 0, q: null, locked: false, mode: 'stage', why: null, hintUsed: false
+  };
+  $('#bTitle').textContent = st.lv + '. ' + st.name;
+  $('#bSub').textContent = 'STAGE ' + st.lv + ' ‧ ' + st.en;
+  $('#mName').innerHTML = st.mon + ' <em>' + st.monEn + '</em>';
+  $('#mIcon').textContent = st.emoji;
+  $('#monster').textContent = st.emoji;
+  $('#monster').className = '';
+  $('#pops').innerHTML = '';
+  renderHud();
+  scr('s-battle');
+  nextQuestion();
+}
+function renderHud() {
+  const pp = Math.round(playerPower());
+  $('#pHpBar').style.width = clamp(B.pHp, 0, 100) + '%';
+  $('#pHpTxt').textContent = Math.round(B.pHp);
+  $('#pXpBar').style.width = clamp(S.xp / xpNeed(S.level) * 100, 0, 100) + '%';
+  $('#mHpBar').style.width = clamp(B.mHp / B.mMax * 100, 0, 100) + '%';
+  $('#mHpTxt').textContent = Math.max(0, Math.round(B.mHp)) + ' / ' + B.mMax;
+  $('#comboTag').innerHTML = B.combo >= 2
+    ? '<b style="color:var(--gold)">連擊 x' + B.combo + ' Combo</b>' : '';
+  let h = '';
+  for (let i = 0; i < 5; i++) h += B.pHp > i * 20 ? '❤️' : '🖤';
+  $('#hearts').innerHTML = h;
+  if (B) {
+    $('#hintBtn').textContent = B.hintUsed ? '💡 已用提示' : '💡 提示 −1HP';
+    $('#wepBtn').textContent = '⚔️ ' + weapon().em + ' 攻擊 ' + Math.round(playerPower());
+  }
+  $('#qNo').textContent = 'Q' + (B.qNo + 1);
+  $('#bGoal').innerHTML = GOALS[B.lv - 1];
+}
+
+function nextQuestion() {
+  B.qNo++;
+  B.q = makeQuestion(B.lv);
+  B.locked = false;
+  B.hintUsed = false;
+  try {
+    $('#qTopic').textContent = B.q.topic;
+    $('#qText').textContent = B.q.prompt;
+    $('#qEn').textContent = B.q.en;
+    $('#qHint').classList.add('hide');
+    renderAnswerArea(B.q, null);
+    renderHud();
+    scr('s-battle');
+  } catch (e) {
+    /* 唔好靜默失敗：繪製錯誤要即刻見到，否則玩家會卡住唔知咩事 */
+    console.error('nextQuestion failed', e);
+    toast('⚠️ 畫面出錯，請重新載入 Reload the page');
+    throw e;
+  }
+}
+
+function renderAnswerArea(q, sel) {
+  const host = $('#ansArea'); host.innerHTML = '';
+  if (q.format === 'mc' || q.format === 'mc-expr') {
+    const box = document.createElement('div'); box.className = 'mc';
+    if (q.format === 'mc-expr') box.style.gridTemplateColumns = '1fr';
+    q.options.forEach(o => {
+      const b = keyBtn((q.format === 'mc-expr' ? '' : 'x = ') + o.text, o.text, () => {
+        if (B.locked) return;
+        $$('button', box).forEach(x => x.disabled = true);
+        const ok = checkAnswer(q, o.text).ok;
+        b.classList.add(ok ? 'ok' : 'bad');
+        if (!ok) $$('button', box).filter(x => x.__ok).forEach(x => x.classList.add('ok'));
+        resolve(ok, o.text, o.reason);
+      });
+      b.__ok = !!o.ok;
+      if (q.format === 'mc-expr') b.style.fontSize = '17px';
+      box.appendChild(b);
+    });
+    host.appendChild(box);
+    return;
+  }
+  /* 數字／分數輸入 */
+  host.appendChild(numPad(function (buf, done) {
+    const r = checkAnswer(B.q, buf);
+    if (r.bad) { done(); toast('格式：整數或分數，例如 7 或 -3/4'); return null; }
+    resolve(r.ok, buf);
+    return r.ok;
+  }, 9));
+}
+
+function popText(txt, color, x) {
+  const el = document.createElement('div');
+  el.className = 'float'; el.textContent = txt;
+  el.style.color = color;
+  el.style.left = (x == null ? 46 + rnd(12) : x) + '%';
+  el.style.top = '34%';
+  $('#pops').appendChild(el);
+  setTimeout(() => el.remove(), 900);
+}
+
+function resolve(ok, given, why) {
+  B.locked = true;
+  B.why = ok ? null : (why || null);
+  const q = B.q;
+  S.stats.asked++;
+  const key = q.topic;
+  S.byTopic[key] = S.byTopic[key] || { r: 0, w: 0 };
+  if (ok) {
+    S.stats.right++; B.right++; B.combo++;
+    S.streakBest = Math.max(S.streakBest || 0, B.combo);
+    S.byTopic[key].r++;
+    let dmg = playerPower();
+    const mult = 1 + Math.min(B.combo - 1, 4) * 0.15;
+    dmg *= mult;
+    const crit = B.combo > 0 && B.combo % 3 === 0;
+    if (crit) dmg *= 1.6;
+    B.mHp = Math.max(0, B.mHp - dmg);
+    const gainXp = Math.round((6 + B.lv * 2) * (crit ? 1.3 : 1));
+    S.xp += gainXp;
+    const gainGold = 2 + B.lv;
+    S.gold += gainGold;
+    $('#monster').classList.add('hurt');
+    setTimeout(() => $('#monster').classList.remove('hurt'), 320);
+    popText((crit ? '⚡暴擊 ' : '') + '-' + Math.round(dmg), crit ? 'var(--gold)' : 'var(--mint)');
+    crit ? sfx.crit() : sfx.hit();
+    checkLevelUp();
+    save();
+    const dead = B.mHp <= 0;
+    showExplain(ok, q, given, dead);
+    return;
+  }
+  S.stats.wrong++; B.wrong++; B.combo = 0;
+  S.byTopic[key].w++;
+  const dmg = Math.round(B.st.dmg * (0.7 + Math.random() * 0.5));
+  B.pHp = Math.max(0, B.pHp - dmg);
+  popText('-' + dmg, 'var(--red)', 18);
+  sfx.wrong();
+  $('#qText').classList.add('shake');
+  setTimeout(() => $('#qText').classList.remove('shake'), 340);
+  save();
+  showExplain(false, q, given, B.pHp <= 0);
+}
+
+function checkLevelUp() {
+  let up = false;
+  while (S.xp >= xpNeed(S.level)) {
+    S.xp -= xpNeed(S.level); S.level++; up = true;
+  }
+  if (up) { sfx.lvl(); toast('🎉 升到 Lv.' + S.level + '！ Level up!'); }
+  return up;
+}
+
+/* ---------------- 解說畫面 ---------------- */
+let exCb = null;
+function showExplain(ok, q, given, fatal) {
+  const ex = $('#exBody');
+  let html = '';
+  html += '<div class="banner ' + (ok ? 'ok' : 'bad') + '">' +
+    (ok ? '✅ 答對！ Correct!' : '❌ 答錯。 Not quite.') +
+    '<small>' + (ok ? '你答：' + given : '你答：' + (given || '—') + '　正解：' + q.ansText) + '</small></div>';
+  html += '<div class="lbl">解題步驟 ‧ WORKING</div>';
+  q.steps.forEach((s, i) => {
+    html += '<div class="stepline"><div class="num">' + (i + 1) + '</div>' +
+      '<div class="m">' + s[0] + '</div><div class="note">' + (s[1] || '') + '</div></div>';
+  });
+
+  html += '<div class="lbl gold">記住這一點 ‧ REMEMBER</div>';
+  html += '<div class="tipbox"><b>' + q.tip[0] + '</b><div style="margin-top:6px;color:var(--dim);font-size:11.5px">' + q.tip[1] + '</div></div>';
+
+  if (!ok && B.why) {
+    html += '<div class="lbl">你的錯處 ‧ YOUR SLIP</div>' +
+      '<div class="tipbox" style="background:rgba(255,93,93,.10);border-color:rgba(255,93,93,.35)">' + B.why + '</div>';
+  }
+
+  if (!ok) {
+    html += '<div class="lbl">常見錯誤 ‧ COMMON MISTAKES</div>' +
+      '<div style="font-size:13px;line-height:1.85;color:#ddd6ff">' +
+      '① 移項後忘記變號（加變減、減變加）。<br>' +
+      '② 只把係數移走，卻沒有整項處理。<br>' +
+      '③ 括號只乘了第一項。<br>' +
+      '④ 兩邊同乘／同除時只做了一邊。<br>' +
+      '⑤ 計完沒有代回原式驗算。</div>';
+  }
+  ex.innerHTML = html;
+  ex.scrollTop = 0;
+
+  const btn = $('#exGo'), msg = $('#exMsg');
+  if (fatal) {
+    const dead = B.pHp <= 0;
+    btn.firstChild.textContent = dead ? '回到地圖 ' : '再試一次 ';
+    msg.textContent = dead ? 'Back to map' : 'Try again';
+    exCb = () => {
+      if (dead) { defeat(); return; }
+      nextQuestion();
+    };
+  } else if (B.mHp <= 0) {
+    btn.firstChild.textContent = '領取獎勵 ';
+    msg.textContent = 'Collect reward';
+    exCb = () => victory();
+  } else {
+    btn.firstChild.textContent = '下一題 ';
+    msg.textContent = 'Next question';
+    exCb = () => nextQuestion();
+  }
+  scr('s-explain');
+}
+$('#exGo').onclick = () => { const f = exCb; exCb = null; if (f) f(); };
+
+/* ---------------- 勝負 ---------------- */
+function defeat() {
+  toast('💀 你被打倒了…再來一次！');
+  scr('s-map'); renderMap(); refreshHome();
+}
+function victory() {
+  sfx.win();
+  const st = B.st;
+  const stars = B.wrong === 0 ? 3 : (B.wrong <= 2 ? 2 : 1);
+  const bonus = Math.round(40 + st.lv * 12);
+  S.xp += bonus;
+  const goldGain = st.gold;
+  S.gold += goldGain;
+  const prevStars = S.best[st.lv] || 0;
+  S.best[st.lv] = Math.max(prevStars, stars);
+  const first = !S.cleared[st.lv];
+  S.cleared[st.lv] = true;
+  checkLevelUp();
+  save();
+  const nxt = STAGES[st.lv];
+  const betterWeapon = WEAPONS.filter(w => S.owned.indexOf(w.id) < 0 && S.gold >= w.cost && S.level >= w.lv)
+    .sort((a, b) => b.dmg - a.dmg)[0];
+  sheet('🎉 戰勝 ' + st.mon + '！', 'VICTORY',
+    '<div style="text-align:center;font-size:34px;letter-spacing:4px;color:var(--gold)">' +
+      '★'.repeat(stars) + '☆'.repeat(3 - stars) + '</div>' +
+    '<div class="kv"><span>答對 / 答錯 Correct / Wrong</span><b>' + B.right + ' / ' + B.wrong + '</b></div>' +
+    '<div class="kv"><span>經驗值 Experience</span><b>+' + bonus + '</b></div>' +
+    '<div class="kv"><span>金幣 Gold</span><b>+' + goldGain + ' 🪙</b></div>' +
+    '<div class="kv"><span>現在等級 Level</span><b>Lv.' + S.level + '</b></div>' +
+    (betterWeapon ? '<div style="height:10px"></div><div class="tipbox">⚔️ 你夠錢買 <b>' + betterWeapon.em + ' ' + betterWeapon.name + '</b>（攻擊 ' + betterWeapon.dmg +
+      '，比現在強 ' + Math.round(betterWeapon.dmg - weapon().dmg) + '）！打怪會快好多。<br><span style="color:var(--dim)">You can afford a stronger weapon.</span></div>' +
+      '<div style="height:8px"></div><button class="btn mint" id="goShop">⚔️ 去買武器 Open weapon shop</button>' : '') +
+    '<div style="height:14px"></div>' +
+    (nxt ? '<button class="btn pri" id="goNext">前往下一關 ' + nxt.name + ' →</button><div style="height:8px"></div>' : '<div class="tipbox">🏆 你已經通過全部 6 關！試下去「5 分鐘混合練習」挑戰自己。<br>All 6 lands cleared!</div>') +
+    '<button class="btn" id="goMap">返回地圖 Back to map</button>');
+  const gn = $('#goNext');
+  if (gn) gn.onclick = () => { $('#sheet').classList.remove('on'); startBattle(st.lv + 1); };
+  const gs = $('#goShop');
+  if (gs) gs.onclick = () => openWeapons(false);
+  $('#goMap').onclick = () => { $('#sheet').classList.remove('on'); scr('s-map'); renderMap(); refreshHome(); };
+  scr('s-map'); renderMap(); refreshHome();
+}
+
+/* ---------------- 提示 ---------------- */
+$('#hintBtn').onclick = () => {
+  if (!B || B.locked) return;
+  const h = $('#qHint');
+  if (!h.classList.contains('hide')) return;
+  B.pHp = Math.max(1, B.pHp - 1);
+  B.hintUsed = true;
+  renderHud();
+  h.classList.remove('hide');
+  h.innerHTML = '💡 ' + B.q.tip[0] + '<br><span style="color:var(--dim);font-size:11px">' + B.q.tip[1] + '</span>';
+  $('#hintBtn').textContent = '💡 已用提示';
+};
+$('#wepBtn').onclick = () => openWeapons(true);
+$('#flee').onclick = () => { B = null; scr('s-map'); renderMap(); refreshHome(); };
+$('#mapBack').onclick = () => { scr('s-home'); refreshHome(); };
+
+function openWeapons(fromBattle) {
+  let html = '<div style="font-size:12.5px;color:var(--dim);margin-bottom:10px">攻擊力 = 武器 + 等級加成（每級 +2.5）。答對連擊仲有加成，每 3 連擊仲有暴擊 ⚡<br>Damage = weapon + level bonus. Combos give up to +60%.</div>';
+  WEAPONS.forEach(w => {
+    const owned = S.owned.indexOf(w.id) >= 0;
+    const eq = S.weapon === w.id;
+    const canBuy = !owned && S.gold >= w.cost && S.level >= w.lv;
+    html += '<div class="wep ' + (eq ? 'on' : '') + '">' +
+      '<div class="em">' + w.em + '</div>' +
+      '<div><div class="nm">' + w.name + (eq ? ' ✔ 使用中' : '') + '</div>' +
+      '<div class="st">' + w.en + ' ‧ ⚔️' + w.dmg + (owned ? ' ‧ 已擁有' : ' ‧ 需 Lv.' + w.lv) + '</div></div>' +
+      '<div class="buy">' + (owned
+        ? (eq ? '' : '<button class="btn sm mint" data-eq="' + w.id + '">裝備</button>')
+        : '<button class="btn sm' + (canBuy ? ' pri' : '') + '" data-buy="' + w.id + '"' + (canBuy ? '' : ' disabled style="opacity:.45"') + '>🪙' + w.cost + '</button>') +
+      '</div></div>';
+  });
+  html += '<div class="kv"><span>你的金幣 Gold</span><b>🪙' + S.gold + '　（Lv.' + S.level + '）</b></div>';
+  const nxt = WEAPONS.find(w => S.owned.indexOf(w.id) < 0);
+  if (nxt) {
+    const needLv = Math.max(0, nxt.lv - S.level), needGold = Math.max(0, nxt.cost - S.gold);
+    html += '<div class="tipbox" style="margin-top:10px">🎯 下一個目標：<b>' + nxt.em + ' ' + nxt.name + '</b>（攻 ' + nxt.dmg + '）<br>' +
+      (needLv ? '‧ 差 ' + needLv + ' 個等級<br>' : '‧ 等級已夠 ✅<br>') +
+      (needGold ? '‧ 差 🪙' + needGold + '<br>' : '‧ 金幣已夠 ✅<br>') +
+      '<span style="color:var(--dim)">打怪同「5 分鐘混合練習」都會加 XP 同金幣。<br>Both battles and practice add XP and gold.</span></div>';
+  } else {
+    html += '<div class="tipbox" style="margin-top:10px">🏆 全部武器已收集！你已經係真正嘅代數勇者。</div>';
+  }
+  sheet('⚔️ 武器庫', 'WEAPONS ‧ 打怪會跌金幣', html);
+  $$('[data-eq]', $('#sheetInner')).forEach(b => b.onclick = () => { S.weapon = b.dataset.eq; save(); sfx.tap(); openWeapons(fromBattle); renderHud(); refreshHome(); });
+  $$('[data-buy]', $('#sheetInner')).forEach(b => b.onclick = () => {
+    const w = WEAPONS.find(x => x.id === b.dataset.buy);
+    if (S.gold < w.cost || S.level < w.lv) return;
+    S.gold -= w.cost; S.owned.push(w.id); S.weapon = w.id; save(); sfx.win();
+    toast('買到 ' + w.name + '！');
+    openWeapons(fromBattle); renderHud(); refreshHome();
+  });
+}
+
+/* ---------------- 首頁按鈕 ---------------- */
+$('#btnPlay').onclick = () => { sfx.tap(); scr('s-map'); renderMap(); };
+$('#btnRules').onclick = () => {
+  let html = '';
+  RULES.forEach(r => html += '<div class="rule"><div class="t">' + r.t + '</div><div class="d">' + r.d + '</div></div>');
+  html += '<div class="tipbox">🕹️ 玩法：答對 ＝ 出招扣怪物血；答錯 ＝ 被反擊扣自己血。血扣到 0 就要重打（進度同金幣都會保留）。<br>Right answer = attack. Wrong answer = take damage.</div>';
+  sheet('📖 招式表', 'RULES OF THE GAME', html);
+};
+$('#btnStats').onclick = () => {
+  const acc = S.stats.asked ? Math.round(S.stats.right / S.stats.asked * 100) : 0;
+  let html = '<div class="kv"><span>等級 Level</span><b>' + S.level + '</b></div>' +
+    '<div class="kv"><span>經驗 Experience</span><b>' + Math.round(S.xp) + ' / ' + xpNeed(S.level) + '</b></div>' +
+    '<div class="kv"><span>金幣 Gold</span><b>🪙' + S.gold + '</b></div>' +
+    '<div class="kv"><span>總題數 Questions</span><b>' + S.stats.asked + '</b></div>' +
+    '<div class="kv"><span>答對 Correct</span><b>' + S.stats.right + '（' + acc + '%）</b></div>' +
+    '<div class="kv"><span>最長連擊 Best combo</span><b>' + (S.streakBest || 0) + '</b></div>' +
+    '<div class="kv"><span>已通關 Lands</span><b>' + Object.keys(S.cleared).length + ' / 6</b></div>' +
+    '<div style="height:10px"></div><div class="lbl">各關表現 ‧ BY TOPIC</div>';
+  const keys = Object.keys(S.byTopic);
+  if (!keys.length) html += '<div style="color:var(--dim);font-size:13px">仲未有紀錄。去打完第一關先！</div>';
+  keys.forEach(k => {
+    const t = S.byTopic[k], tot = t.r + t.w, p = tot ? Math.round(t.r / tot * 100) : 0;
+    const col = p >= 80 ? 'var(--mint)' : p >= 50 ? 'var(--gold)' : 'var(--red)';
+    html += '<div class="kv"><span>' + k + '</span><b style="color:' + col + '">' + p + '%　<span style="color:var(--dim);font-weight:400">' + t.r + '/' + tot + '</span></b></div>';
+  });
+  const weak = keys.filter(k => { const t = S.byTopic[k], tot = t.r + t.w; return tot >= 3 && t.r / tot < 0.7; });
+  if (weak.length) html += '<div style="height:12px"></div><div class="tipbox">⚠️ 弱項：' + weak.join('、') + '<br>建議重打相關關卡，或者撳「5 分鐘混合練習」。</div>';
+  sheet('📊 戰績', 'YOUR STATS', html);
+};
+$('#btnSound').onclick = () => { S.sound = !S.sound; save(); refreshHome(); if (S.sound) sfx.tap(); };
+
+/* ---------------- 5 分鐘混合練習 ---------------- */
+let P = null, pTimer = null;
+function startPractice() {
+  P = { left: 300, right: 0, wrong: 0, q: null, locked: false, topics: {}, lv: clamp(S.level, 1, 6) };
+  scr('s-practice');
+  renderPracticeHud();
+  nextPractice();
+  clearInterval(pTimer);
+  pTimer = setInterval(() => {
+    P.left--;
+    renderPracticeHud();
+    if (P.left <= 0) endPractice();
+  }, 1000);
+}
+function renderPracticeHud() {
+  $('#pClock').textContent = Math.floor(P.left / 60) + ':' + String(P.left % 60).padStart(2, '0');
+  $('#pScore').textContent = '✅' + P.right + ' ❌' + P.wrong;
+  $('#pGoal').innerHTML = '🎯 5 分鐘內答最多題。答錯扣 5 秒，但會有完整步驟教你。<br>' +
+    '<span style="color:var(--dim)">−5s per wrong answer, full working shown every time.</span>';
+}
+function nextPractice() {
+  const lv = rnd(3) === 0 ? ri(1, P.lv) : P.lv;
+  P.q = makeQuestion(lv);
+  P.locked = false;
+  $('#pqTopic').textContent = P.q.topic;
+  $('#pqText').textContent = P.q.prompt;
+  $('#pqEn').textContent = P.q.en;
+  renderPracticeAnswer();
+}
+function renderPracticeAnswer() {
+  const q = P.q, host = $('#pAns'); host.innerHTML = '';
+  if (q.format === 'mc' || q.format === 'mc-expr') {
+    const box = document.createElement('div'); box.className = 'mc';
+    if (q.format === 'mc-expr') box.style.gridTemplateColumns = '1fr';
+    q.options.forEach(o => {
+      const b = keyBtn((q.format === 'mc-expr' ? '' : 'x = ') + o.text, o.text, () => {
+        if (P.locked) return;
+        P.locked = true;
+        const ok = checkAnswer(q, o.text).ok;
+        b.classList.add(ok ? 'ok' : 'bad');
+        if (!ok) $$('button', box).filter(x => x.__ok).forEach(x => x.classList.add('ok'));
+        pResolve(ok);
+      });
+      b.__ok = !!o.ok;
+      if (q.format === 'mc-expr') b.style.fontSize = '17px';
+      box.appendChild(b);
+    });
+    host.appendChild(box); return;
+  }
+  host.appendChild(numPad(function (buf, again) {
+    const r = checkAnswer(P.q, buf);
+    if (r.bad) { toast('格式：整數或分數，例如 7 或 -3/4'); return null; }
+    pResolve(r.ok);
+    return r.ok;
+  }, 9));
+}
+function pResolve(ok) {
+  S.stats.asked++;
+  const key = P.q.topic;
+  S.byTopic[key] = S.byTopic[key] || { r: 0, w: 0 };
+  P.topics[key] = P.topics[key] || { r: 0, w: 0 };
+  if (ok) { P.right++; S.stats.right++; S.byTopic[key].r++; P.topics[key].r++; S.xp += 4; S.gold += 1; sfx.hit(); }
+  else { P.wrong++; S.stats.wrong++; S.byTopic[key].w++; P.topics[key].w++; sfx.wrong(); P.left = Math.max(3, P.left - 5); }
+  checkLevelUp(); save(); renderPracticeHud();
+  const show = document.createElement('div');
+  $('#pAns').innerHTML = '';
+  $('#pAns').appendChild(show);
+  show.style.cssText = 'background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:14px;padding:12px';
+  show.innerHTML = '<div style="font-weight:900;color:' + (ok ? 'var(--mint)' : 'var(--red)') + ';margin-bottom:8px">' +
+      (ok ? '✅ 正確！' : '❌ 正解：') + (ok ? '' : P.q.ansText) + '</div>' +
+    P.q.steps.map((s, i) => '<div style="font-family:Cambria,Georgia,serif;font-size:16px;font-weight:700">' +
+      (i + 1) + '. ' + s[0] + '</div><div style="font-size:10.5px;color:var(--dim);margin-bottom:7px">' + (s[1] || '') + '</div>').join('') +
+    '<div style="font-size:12px;color:var(--gold);line-height:1.6;margin-top:4px">💡 ' + P.q.tip[0] + '</div>';
+  const nb = keyBtn(ok ? '下一題 Next →' : '明白，繼續 Continue →', null, () => { if (P.left > 0) nextPractice(); }, 'btn pri');
+  nb.style.marginTop = '10px';
+  show.appendChild(nb);
+}
+function endPractice() {
+  clearInterval(pTimer); pTimer = null;
+  const tot = P.right + P.wrong, acc = tot ? Math.round(P.right / tot * 100) : 0;
+  $('#rsScore').textContent = P.right;
+  $('#rsDetail').innerHTML =
+    '總題數 Questions：<b>' + tot + '</b><br>準確度 Accuracy：<b>' + acc + '%</b><br>金幣 Gold：<b>+' + P.right + ' 🪙</b>';
+  const weak = Object.keys(P.topics).filter(k => { const t = P.topics[k]; return t.w > 0; })
+    .sort((a, b) => P.topics[b].w - P.topics[a].w);
+  $('#rsWeak').innerHTML = weak.length
+    ? weak.map(k => '⚠️ ' + k + '（錯 ' + P.topics[k].w + ' 題）').join('<br>') + '<br><span style="color:var(--dim)">呢幾類要再練。建議重打對應關卡。</span>'
+    : '🎉 全部答對，勁！全部正確就係可以挑戰下一關嘅信號。';
+  S.xp += tot * 2;
+  checkLevelUp(); save(); refreshHome();
+  scr('s-result');
+}
+$('#btnPractice').onclick = () => { sfx.tap(); startPractice(); };
+$('#rsHome').onclick = () => { scr('s-home'); refreshHome(); };
+$('#pQuit').onclick = () => { endPractice(); };
+$('#pqHintBtn').onclick = () => { if (P && !P.locked) toast('💡 ' + P.q.tip[0].replace(/<br>/g, ' ')); };
+
+/* ---------------- 內建自我測試（只在 ?selftest=1 時執行，方便驗收） ----------------
+   單步狀態機：每次只做一個動作、讓出一個 tick，唔會改寫遊戲狀態。
+   One action per tick; never mutates game state or handlers. */
+async function selfTest() {
+  const log = [], t0 = Date.now();
+  const on = id => !!document.querySelector('#' + id + '.on');
+  const say = (n, v) => log.push((v ? 'PASS ' : 'FAIL ') + n);
+  const tick = () => new Promise(r => setTimeout(r, 60));
+  let errs = 0;
+  window.onerror = (m, s, l) => { errs++; log.push('JSERROR ' + m + ' @' + l); };
+  let q = 0, explains = 0, wins = 0, typed = 0, hintTested = false;
+  try {
+    say('home', on('s-home'));
+    $('#sheet').classList.remove('on');
+    $('#btnPlay').click();
+    await tick();
+    say('map', on('s-map'));
+    say('stage_count_6', $$('#stageList .stage').length === 6);
+    $$('#stageList .stage')[0].click();
+    await tick();
+    say('battle', on('s-battle'));
+
+    for (let i = 0; i < 400; i++) {
+      /* 通關獎勵 */
+      /* 彈出面板：只有「戰勝」面板代表打完；其他（例如新手說明）關掉繼續 */
+      if ($('#sheet').classList.contains('on')) {
+        const t = $('#sheetInner').textContent;
+        if (t.indexOf('戰勝') >= 0) {
+          wins++;
+          say('victory_panel', /經驗值/.test(t) && /金幣/.test(t));
+          break;
+        }
+        $('#sheetX').click();
+        await tick();
+        continue;
+      }
+      /* 解說畫面：讀完，然後按「繼續」 */
+      if (on('s-explain')) {
+        explains++;
+        if (explains === 1) {
+          const txt = $('#exBody').textContent;
+          say('explain_shows_steps', txt.indexOf('解題步驟') >= 0);
+          say('explain_shows_tip', txt.indexOf('記住這一點') >= 0);
+        }
+        log.push('TICK ' + i + ' explain#' + explains + ' qNo=' + B.qNo);
+        if (explains > 24) { say('no_explain_loop', false); break; }
+        $('#exGo').click();
+        await tick();
+        continue;
+      }
+      if (!on('s-battle')) { say('stuck_screen_' + $$('.scr').filter(s => s.classList.contains('on')).map(s => s.id).join('_'), false); break; }
+      /* 答題 */
+      const mc = $$('#ansArea .mc button');
+      if (mc.length) {
+        q++;
+        if (q === 1) {
+          say('mc_has_4_options', mc.length === 4);
+          say('mc_exactly_one_correct', mc.filter(b => checkAnswer(B.q, b.__v).ok).length === 1);
+        }
+        /* 第一題先試提示：應該扣 1 HP 並顯示提示文字 */
+        if (q > 1 && !hintTested) {
+          hintTested = true;
+          const hp0 = B.pHp;
+          $('#hintBtn').click();
+          await tick();
+          say('hint_costs_1hp', B.pHp === Math.max(1, hp0 - 1));
+          say('hint_text_shown', $('#qHint').textContent.indexOf('💡') >= 0);
+          say('hint_marks_used', $('#hintBtn').textContent.indexOf('已用') >= 0);
+        }
+        const pickBtn = (q % 5 === 0)
+          ? mc.find(b => !checkAnswer(B.q, b.__v).ok)
+          : mc.find(b => checkAnswer(B.q, b.__v).ok);
+        if (!pickBtn) { say('found_clickable_option', false); break; }
+        pickBtn.click();
+        await tick();
+        continue;
+      }
+      const keys = $$('#ansArea .keys button');
+      if (keys.length) {
+        q++; typed++;
+        const hit = re => keys.find(b => re.test(b.textContent));
+        const ans = B.q.ansText;
+        hit(/^清除$/).click();
+        for (const ch of ans) {
+          if (/[0-9]/.test(ch)) hit(new RegExp('^' + ch + '$')).click();
+          else if (ch === '-') hit(/^−$/).click();
+          else if (ch === '/') hit(/^\/$/).click();
+        }
+        hit(/^確定$/).click();
+        await tick();
+        continue;
+      }
+      say('answer_ui_present', false);
+      break;
+    }
+
+    say('questions_' + q, q >= 4);
+    say('explanations_' + explains, explains >= 2);
+    say('win_' + wins, wins >= 1);
+    say('no_js_errors_' + errs, errs === 0);
+    const raw = localStorage.getItem('algebraHero.v1');
+    const st = raw ? JSON.parse(raw) : null;
+    say('progress_saved', !!st && st.stats && st.stats.asked >= q);
+    say('stage_recorded', !!st && !!st.cleared && Object.keys(st.cleared).length >= 1);
+    say('xp_gold_gained', !!st && (st.gold > 0 || st.level > 1));
+    say('topic_stats', !!st && !!st.byTopic && Object.keys(st.byTopic).length >= 1);
+    const ov = document.documentElement.scrollWidth - window.innerWidth;
+    say('no_h_overflow_' + ov, ov <= 1);
+  } catch (e) {
+    log.push('THROW ' + e.message + ' | ' + (e.stack || '').split('\n')[1]);
+  }
+  log.push('ELAPSED_MS ' + (Date.now() - t0));
+  $('#selftest').hidden = false;
+  const fails = log.filter(l => /^(FAIL|JSERROR|THROW)/.test(l)).length;
+  $('#selftest').textContent = 'SELFTEST-RESULT\n' + log.join('\n') + '\nSELFTEST-END\nFAILCOUNT ' + fails;
+  document.title = 'SELFTEST ' + (fails ? 'FAIL' : 'PASS');
+}
+if (typeof location !== 'undefined' && location.search.indexOf('selftest') >= 0) {
+  $('#sheet').classList.remove('on');
+  setTimeout(selfTest, 400);
+}
+
+
+/* ---------------- 啟動 ---------------- */
+refreshHome();
+if (!S.seenIntro) {
+  S.seenIntro = true; save();
+  setTimeout(() => {
+    sheet('🧙‍♂️ 歡迎，代數勇者！', 'WELCOME',
+      '<div style="font-size:13.5px;line-height:1.9;color:#ddd6ff">' +
+      '你係最後一個識解方程嘅人。六隻怪物封鎖咗數學大陸，每次<b>答對</b>就會出招扣佢哋血，<b>答錯</b>就會被反擊。<br><br>' +
+      '① 睇題目，揀答案或輸入數字（分數打 <code>3/4</code>）。<br>' +
+      '② 答錯唔緊要，會有完整解題步驟教你，睇完再繼續。<br>' +
+      '③ 打怪會跌金幣，可以買更強武器。' +
+      '</div><div style="height:12px"></div>' +
+      '<div class="tipbox">手機建議：加去主畫面（分享 → 加入主畫面），全螢幕玩最順。<br>Tip: Add to Home Screen for fullscreen play.</div>' +
+      '<div style="height:12px"></div><button class="btn pri" onclick="document.getElementById(\'sheet\').classList.remove(\'on\');document.getElementById(\'btnPlay\').click()">開始第一關 Start →</button>');
+  }, 600);
+}
+</script>
+</body>
+</html>
