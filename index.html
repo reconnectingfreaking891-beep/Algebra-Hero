@@ -64,6 +64,11 @@ html.en-only .zh,html.en-only .main-zh{display:none}
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
 .logo-en{font-size:12px;letter-spacing:5px;color:var(--mint);font-weight:800}
 .home-tip{font-size:12px;color:var(--dim);max-width:270px;line-height:1.6}
+.warn{
+  max-width:310px;background:rgba(255,93,93,.12);border:1px solid rgba(255,93,93,.45);border-radius:14px;
+  padding:10px 13px;font-size:12.5px;font-weight:700;color:#ffd9d9;line-height:1.6
+}
+.warn span{display:block;font-weight:400;font-size:11px;color:var(--dim);margin-top:4px}
 .hero-badge{font-size:62px;filter:drop-shadow(0 8px 20px rgba(0,0,0,.5))}
 #s-home .btn{max-width:310px}
 .home-lv{font-size:12px;color:var(--dim)}
@@ -214,6 +219,7 @@ html.en-only .zh,html.en-only .main-zh{display:none}
     <div class="logo-en">ALGEBRA HERO</div>
     <p class="home-tip">解方程＝出招打怪。答對就攻擊，答錯就要睇解題步驟。<br>Solve equations to attack. Six lands, six monsters.</p>
     <div class="home-lv" id="homeLv">Lv.1 ‧ ⚔️12 ‧ 🪙0</div>
+    <div class="warn hide" id="storageWarn">⚠️ 進度無法儲存<br><span>此瀏覽器封鎖了儲存功能，關掉分頁後進度會重來。<br>Please open this page in Chrome or Safari directly.</span></div>
     <button class="btn pri" id="btnPlay">開始冒險 <span class="zh">Start adventure</span></button>
     <button class="btn" id="btnPractice">⚡ 5 分鐘混合練習 <span class="zh">Quick mixed practice</span></button>
     <div class="row" style="gap:8px">
@@ -760,16 +766,42 @@ const DEF = {
   cleared: {}, best: {}, stats: { asked: 0, right: 0, wrong: 0 }, sound: true, seenIntro: false,
   byTopic: {}, streakBest: 0
 };
+/* 儲存：唔可以假設 localStorage 一定用得。部分手機瀏覽器（WeChat 等內置瀏覽器、
+   私密模式、部分 file:// 開啟方式）會封鎖儲存並直接拋錯。若果唔擋住，
+   錯誤會中斷「打完怪物 → 派獎勵」流程，令玩家永遠入唔到下一關。
+   Storage must never be assumed available: a blocked localStorage throws and
+   would abort the victory flow, trapping the player forever. */
+/* 測試模式：?storage=fail 會模擬「禁止儲存」，用來驗證流程唔會被中斷 */
+let storeFailTest = false;
+try { storeFailTest = /[?&]storage=fail/.test(location.search); } catch (e) {}
+let storageOk = true, memStore = {};
+if (storeFailTest) {
+  storageOk = false;
+} else {
+  try {
+    localStorage.setItem('__probe__', '1');
+    localStorage.removeItem('__probe__');
+  } catch (e) { storageOk = false; }
+}
+function storeGet(k) {
+  if (storeFailTest) throw new Error('storage blocked (test mode)');
+  try { return localStorage.getItem(k); } catch (e) { return memStore[k] || null; }
+}
+function storeSet(k, v) {
+  if (storeFailTest) { storageOk = false; throw new Error('storage blocked (test mode)'); }
+  try { localStorage.setItem(k, v); } catch (e) { memStore[k] = v; storageOk = false; }
+}
+
 let S = load();
 function load() {
   try {
-    const raw = localStorage.getItem('algebraHero.v1');
+    const raw = storageOk ? storeGet('algebraHero.v1') : null;
     if (!raw) return JSON.parse(JSON.stringify(DEF));
     const o = JSON.parse(raw);
     return Object.assign(JSON.parse(JSON.stringify(DEF)), o);
   } catch (e) { return JSON.parse(JSON.stringify(DEF)); }
 }
-function save() { try { localStorage.setItem('algebraHero.v1', JSON.stringify(S)); } catch (e) {} }
+function save() { try { storeSet('algebraHero.v1', JSON.stringify(S)); } catch (e) {} }
 
 const xpNeed = lv => Math.round(70 + 38 * Math.pow(lv, 1.42));
 function weapon() { return WEAPONS.find(w => w.id === S.weapon) || WEAPONS[0]; }
@@ -822,6 +854,8 @@ function sheet(title, sub, html) {
 $('#sheet').addEventListener('click', e => { if (e.target.id === 'sheet') $('#sheet').classList.remove('on'); });
 
 function refreshHome() {
+  const w = $('#storageWarn');
+  if (w) w.classList.toggle('hide', storageOk);
   $('#homeLv').textContent = 'Lv.' + S.level + ' ‧ ⚔️' + Math.round(playerPower()) +
     ' ‧ 🪙' + S.gold + ' ‧ ⭐' + Object.keys(S.cleared).length + '/6';
   $('#btnSound').textContent = S.sound ? '🔊 音效' : '🔇 靜音';
@@ -961,6 +995,9 @@ function resolve(ok, given, why) {
   B.locked = true;
   B.why = ok ? null : (why || null);
   const q = B.q;
+  resolveFlow(ok, given, why, q);
+}
+function resolveFlow(ok, given, why, q) {
   S.stats.asked++;
   const key = q.topic;
   S.byTopic[key] = S.byTopic[key] || { r: 0, w: 0 };
@@ -985,7 +1022,7 @@ function resolve(ok, given, why) {
     checkLevelUp();
     save();
     const dead = B.mHp <= 0;
-    showExplain(ok, q, given, dead);
+    showExplain(ok, q, given, dead);   // 最後一個參數＝怪物已死（勝利）
     return;
   }
   S.stats.wrong++; B.wrong++; B.combo = 0;
@@ -997,7 +1034,7 @@ function resolve(ok, given, why) {
   $('#qText').classList.add('shake');
   setTimeout(() => $('#qText').classList.remove('shake'), 340);
   save();
-  showExplain(false, q, given, B.pHp <= 0);
+  showExplain(false, q, given, B.mHp <= 0);   // 最後一個參數＝怪物已死（勝利），唔係玩家死
 }
 
 function checkLevelUp() {
@@ -1011,6 +1048,8 @@ function checkLevelUp() {
 
 /* ---------------- 解說畫面 ---------------- */
 let exCb = null;
+/* fatal = 玩家被打倒（血量歸零）。怪物被打死係「勝利」，唔可以當成失敗。
+   fatal means the PLAYER is down. A dead monster is a victory — never treat it as failure. */
 function showExplain(ok, q, given, fatal) {
   const ex = $('#exBody');
   let html = '';
@@ -1044,18 +1083,17 @@ function showExplain(ok, q, given, fatal) {
   ex.scrollTop = 0;
 
   const btn = $('#exGo'), msg = $('#exMsg');
-  if (fatal) {
-    const dead = B.pHp <= 0;
-    btn.firstChild.textContent = dead ? '回到地圖 ' : '再試一次 ';
-    msg.textContent = dead ? 'Back to map' : 'Try again';
-    exCb = () => {
-      if (dead) { defeat(); return; }
-      nextQuestion();
-    };
-  } else if (B.mHp <= 0) {
+  if (B.mHp <= 0) {
+    /* 怪物已死：一定係勝利，最優先處理 */
     btn.firstChild.textContent = '領取獎勵 ';
     msg.textContent = 'Collect reward';
     exCb = () => victory();
+  } else if (fatal) {
+    /* 玩家血量歸零：呢個戰鬥失敗 */
+    const dead = B.pHp <= 0;
+    btn.firstChild.textContent = '回到地圖 ';
+    msg.textContent = 'Back to map';
+    exCb = () => defeat();
   } else {
     btn.firstChild.textContent = '下一題 ';
     msg.textContent = 'Next question';
@@ -1087,7 +1125,7 @@ function victory() {
   const nxt = STAGES[st.lv];
   const betterWeapon = WEAPONS.filter(w => S.owned.indexOf(w.id) < 0 && S.gold >= w.cost && S.level >= w.lv)
     .sort((a, b) => b.dmg - a.dmg)[0];
-  sheet('🎉 戰勝 ' + st.mon + '！', 'VICTORY',
+  sheet('🎉 第 ' + st.lv + ' 關完成！戰勝 ' + st.mon, 'STAGE ' + st.lv + ' CLEARED',
     '<div style="text-align:center;font-size:34px;letter-spacing:4px;color:var(--gold)">' +
       '★'.repeat(stars) + '☆'.repeat(3 - stars) + '</div>' +
     '<div class="kv"><span>答對 / 答錯 Correct / Wrong</span><b>' + B.right + ' / ' + B.wrong + '</b></div>' +
@@ -1098,7 +1136,7 @@ function victory() {
       '，比現在強 ' + Math.round(betterWeapon.dmg - weapon().dmg) + '）！打怪會快好多。<br><span style="color:var(--dim)">You can afford a stronger weapon.</span></div>' +
       '<div style="height:8px"></div><button class="btn mint" id="goShop">⚔️ 去買武器 Open weapon shop</button>' : '') +
     '<div style="height:14px"></div>' +
-    (nxt ? '<button class="btn pri" id="goNext">前往下一關 ' + nxt.name + ' →</button><div style="height:8px"></div>' : '<div class="tipbox">🏆 你已經通過全部 6 關！試下去「5 分鐘混合練習」挑戰自己。<br>All 6 lands cleared!</div>') +
+    (nxt ? '<button class="btn pri" id="goNext">▶ 前往第 ' + nxt.lv + ' 關：' + nxt.name + '</button><div style="height:8px"></div>' : '<div class="tipbox">🏆 你已經通過全部 6 關！試下去「5 分鐘混合練習」挑戰自己。<br>All 6 lands cleared!</div>') +
     '<button class="btn" id="goMap">返回地圖 Back to map</button>');
   const gn = $('#goNext');
   if (gn) gn.onclick = () => { $('#sheet').classList.remove('on'); startBattle(st.lv + 1); };
